@@ -1,1 +1,4 @@
 .venv/
+chroma_db/
+data/raw_volumes
+data/processed_chunks

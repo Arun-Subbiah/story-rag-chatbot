@@ -6,16 +6,13 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 import streamlit as st
 
-st.title("Chettiar Copilot")
+st.title("Story Copilot")
 
-# --- Configure Gemini ---
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-# --- Load embedding model ---
 embedding_model = HuggingFaceEmbeddings(model_name="BAAI/bge-small-en")
 
-# --- Initialize Chroma vector store ---
 persist_directory = "chroma_db"
 collection_name = "story_docs"
 vectorstore = Chroma(
@@ -48,18 +45,16 @@ def get_metadata_filter_and_clean_query(query):
         if season and volume:
             return {"volume": f"season {season} volume {volume}"}, cleaned_query
         elif season:
-            # For only season, we do manual filtering later
+            # For only season
             return lambda metadata: f"season {season}" in metadata.get("volume", "").lower(), cleaned_query
         else:
             return None, query.strip()
 
-# --- UI Input ---
 query = st.text_input("Ask me something")
 
 if st.button("Send") and query.strip():
     metadata_filter, cleaned_query = get_metadata_filter_and_clean_query(query.strip())
 
-    # Retrieve docs based on filter
     if callable(metadata_filter):
         all_docs = vectorstore.similarity_search(cleaned_query, k=100)
         docs = [doc for doc in all_docs if metadata_filter(doc.metadata)]
@@ -67,7 +62,6 @@ if st.button("Send") and query.strip():
         retriever = vectorstore.as_retriever(search_kwargs={"filter": metadata_filter, "k": 20})
         docs = retriever.get_relevant_documents(cleaned_query)
 
-    # Sort docs by season/volume
     docs.sort(key=lambda doc: extract_volume_number(doc.metadata.get("volume", "")))
 
     context = "\n\n".join([doc.page_content for doc in docs])
@@ -83,7 +77,7 @@ Question:
 Answer:
 """
 
-    st.write("Running Chettiar Copilot...")
+    st.write("Running Story Copilot...")
     response = model.generate_content(prompt)
     answer = response.text
     st.write("**Answer:**")

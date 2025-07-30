@@ -10,7 +10,6 @@ RAW_FOLDER = Path("data/raw_volumes/ExportedVolumes")
 CHUNK_FOLDER = Path("data/processed_chunks")
 
 def extract_standard_volume_name(filename: str) -> str:
-    # Example: "Captain C season 1 volume 10" → "season 1 volume 10"
     match = re.search(r"(season \d+ volume \d+|spinoff \d+ volume \d+)", filename.lower())
     return match.group(1) if match else filename.lower()
 
